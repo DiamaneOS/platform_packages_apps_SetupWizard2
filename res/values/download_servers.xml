@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="download_servers_title">Download servers</string>
+    <string name="download_servers_description">Choose the shared server for OS and Apps downloads. The selected server sees your IP address. Fallback can send requests to the other region. Continue to keep the saved choice.</string>
+    <string name="download_servers_settings">Download server settings</string>
+    <string name="download_servers_europe">Europe (primary)</string>
+    <string name="download_servers_canada">Canada</string>
+    <string name="download_servers_fallback_on">Fallback on</string>
+    <string name="download_servers_fallback_off">Fallback off</string>
+    <string name="download_servers_current">%1$s · %2$s</string>
+    <string name="download_servers_unavailable">Download server settings are unavailable. You can open Settings or continue without changing the saved choice.</string>
+</resources>

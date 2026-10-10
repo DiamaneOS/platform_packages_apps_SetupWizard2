@@ -12,6 +12,7 @@ android_app {
     overrides: ["Provision"],
 
     static_libs: [
+        "DiamaneOSDownloadPolicyClient",
         "androidx.core_core",
         "setupcompat",
         "setupdesign",
