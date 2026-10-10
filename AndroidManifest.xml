@@ -41,6 +41,7 @@
         <activity android:name=".view.activity.OemUnlockActivity" />
         <activity android:name=".view.activity.DateTimeActivity" />
         <activity android:name=".view.activity.UpdaterSecurityPreviewActivity" />
+        <activity android:name="de.diamaneos.setup.DownloadServersActivity" android:exported="false" />
         <activity android:name=".view.activity.WifiActivity" />
         <activity android:name=".view.activity.LocationActivity" />
         <activity android:name=".view.activity.SecurityActivity" />
