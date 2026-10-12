@@ -16,7 +16,7 @@ import java.io.IOException
 
 class DownloadServersActivity : SetupWizardActivity(
     R.layout.activity_location,
-    android.R.drawable.stat_sys_download,
+    R.drawable.baseline_download_glif,
     R.string.download_servers_title,
     R.string.download_servers_description
 ) {

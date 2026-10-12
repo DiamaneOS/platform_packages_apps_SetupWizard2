@@ -193,7 +193,7 @@ class DownloadServerTests(unittest.TestCase):
         strings = ET.parse(ROOT / 'res/values/download_servers.xml').getroot()
         string_ids = {item.get('name'): index for index, item in enumerate(strings, 10)}
         fields = ','.join(f'{name}={index}' for name, index in string_ids.items())
-        resources = 'package app.grapheneos.setupwizard; public class R { public static class string { public static final int ' + fields + '; } public static class layout { public static final int activity_location=1; } public static class id { public static final int glif_layout=1; } }'
+        resources = 'package app.grapheneos.setupwizard; public class R { public static class string { public static final int ' + fields + '; } public static class drawable { public static final int baseline_download_glif=1; } public static class layout { public static final int activity_location=1; } public static class id { public static final int glif_layout=1; } }'
         files = dict(JAVA)
         files['app/grapheneos/setupwizard/R.java'] = resources
         for name, content in files.items():
