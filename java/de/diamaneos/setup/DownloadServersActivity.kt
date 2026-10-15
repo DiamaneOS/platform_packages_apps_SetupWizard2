@@ -53,12 +53,11 @@ class DownloadServersActivity : SetupWizardActivity(
     override fun onResume() {
         super.onResume()
         settingsItem.summary = try {
-            val policy = DownloadPolicyClient.read(this)
-            val server = getString(if (policy.server == DownloadPolicy.CANADA)
-                R.string.download_servers_canada else R.string.download_servers_europe)
-            val fallback = getString(if (policy.fallback)
-                R.string.download_servers_fallback_on else R.string.download_servers_fallback_off)
-            getString(R.string.download_servers_current, server, fallback)
+            getString(when (DownloadPolicyClient.read(this).mode) {
+                DownloadPolicy.PRIMARY -> R.string.download_servers_europe
+                DownloadPolicy.CANADA -> R.string.download_servers_canada
+                else -> R.string.download_servers_automatic
+            })
         } catch (e: IOException) {
             getString(R.string.download_servers_unavailable)
         }
