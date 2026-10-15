@@ -47,10 +47,10 @@ JAVA = {
     'com/google/android/setupdesign/util/ThemeHelper.java': '''package com.google.android.setupdesign.util; public class ThemeHelper {
         public static int getSuwDefaultTheme(android.content.Context c){return 1;} }''',
     'de/diamaneos/downloads/DownloadPolicy.java': '''package de.diamaneos.downloads; public class DownloadPolicy {
-        public static final String PRIMARY="primary_eu",CANADA="canada"; public final String server; public final boolean fallback;
-        public DownloadPolicy(String s,boolean f){server=s;fallback=f;} }''',
+        public static final String AUTOMATIC="automatic",PRIMARY="primary_eu",CANADA="canada"; public final String mode;
+        public DownloadPolicy(String m){mode=m;} }''',
     'de/diamaneos/downloads/DownloadPolicyClient.java': '''package de.diamaneos.downloads; public class DownloadPolicyClient {
-        public static DownloadPolicy saved=new DownloadPolicy(DownloadPolicy.PRIMARY,false); public static boolean unavailable,untrusted;
+        public static DownloadPolicy saved=new DownloadPolicy(DownloadPolicy.AUTOMATIC); public static boolean unavailable,untrusted;
         public static int reads,writes;
         public static DownloadPolicy read(android.content.Context c) throws java.io.IOException {
             reads++;if(unavailable)throw new java.io.IOException("Authority unavailable fixture");return saved;}
@@ -141,26 +141,25 @@ fun main(args: Array<String>) {
             check(activity.launchCount==0)
         }
         "summary" -> {
-            for(server in listOf("primary_eu","canada")) for(fallback in listOf(false,true)) {
-                val saved=DownloadPolicy(server,fallback);DownloadPolicyClient.saved=saved
+            for((mode,text) in listOf("automatic" to "Automatic","primary_eu" to "Europe only","canada" to "Canada only")) {
+                val saved=DownloadPolicy(mode);DownloadPolicyClient.saved=saved
                 activity.onResume()
-                val region=if(server=="canada")"Canada" else "Europe (primary)"
-                check(row.summary=="$region · Fallback ${if(fallback)"on" else "off"}")
+                check(row.summary==text)
                 check(DownloadPolicyClient.saved===saved && activity.resultLaunches==0)
             }
         }
         "return_next" -> {
             activity.onResume();adapter.click(0)
-            val saved=DownloadPolicy("canada",false);DownloadPolicyClient.saved=saved
+            val saved=DownloadPolicy("canada");DownloadPolicyClient.saved=saved
             activity.cancelledReturn();activity.onResume()
-            check(row.summary=="Canada · Fallback off")
+            check(row.summary=="Canada only")
             check(activity.resultLaunches==1 && !activity.finished && activity.launchCount==0)
             activity.primaryButton.performClick()
             check(activity.launched.target==WifiActivity::class.java)
             check(DownloadPolicyClient.saved===saved)
         }
         "unavailable" -> {
-            val saved=DownloadPolicy("canada",false);DownloadPolicyClient.saved=saved
+            val saved=DownloadPolicy("canada");DownloadPolicyClient.saved=saved
             DownloadPolicyClient.unavailable=true;activity.onResume()
             check(row.summary==activity.getString(R.string.download_servers_unavailable))
             check(activity.resultLaunches==0 && activity.launchCount==0)
@@ -230,7 +229,7 @@ class DownloadServerTests(unittest.TestCase):
 
     def test_primary_entry_before_wifi_without_auto_launch(self): self.scenario('entry')
     def test_explicit_item_launch_uses_existing_wizard_result_flow(self): self.scenario('click')
-    def test_saved_region_and_fallback_summary(self): self.scenario('summary')
+    def test_saved_choice_summary(self): self.scenario('summary')
     def test_canceled_return_refresh_and_next_preserve_policy(self): self.scenario('return_next')
     def test_unavailable_does_not_launch_or_reset_and_next_advances(self): self.scenario('unavailable')
     def test_missing_or_untrusted_settings_stays_on_wizard_page(self): self.scenario('launch_refusal')
