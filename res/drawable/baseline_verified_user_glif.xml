@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="?attr/sudGlifIconSize"
+        android:height="?attr/sudGlifIconSize"
+        android:drawable="@drawable/baseline_verified_user" />
+</layer-list>
