@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="download_servers_title">Download servers</string>
+    <string name="download_servers_description">Choose the servers for OS and Apps downloads. Automatic uses the faster of DiamaneOS\'s servers in Germany and Canada. The servers see your IP address. Continue to keep the saved choice.</string>
+    <string name="download_servers_settings">Download server settings</string>
+    <string name="download_servers_automatic">Automatic</string>
+    <string name="download_servers_europe">Europe only</string>
+    <string name="download_servers_canada">Canada only</string>
+    <string name="download_servers_unavailable">Download server settings are unavailable. You can open Settings or continue without changing the saved choice.</string>
+</resources>
