@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auditor_title">Check this phone with Auditor</string>
+    <string name="auditor_description">After setup, Auditor opens to check that this phone runs unmodified DiamaneOS with a locked bootloader. You can also do this later in Auditor.</string>
+    <string name="auditor_next" translatable="false">@*android:string/next_button_label</string>
+    <string name="auditor_skip" translatable="false">@*android:string/skip_button_label</string>
+</resources>

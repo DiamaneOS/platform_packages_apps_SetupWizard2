@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auditor_title">Vérifier ce téléphone avec Auditor</string>
+    <string name="auditor_description">Une fois la configuration terminée, Auditor s\'ouvrira pour vérifier que ce téléphone exécute une version non modifiée de DiamaneOS avec un bootloader verrouillé. Vous pourrez aussi le faire plus tard dans Auditor.</string>
+</resources>
