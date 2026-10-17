@@ -19,9 +19,6 @@
     <uses-permission android:name="com.stevesoltys.seedvault.RESTORE_BACKUP" />
     <uses-permission android:name="app.seamlessupdate.client.OPEN_SECURITY_PREVIEW_SETTINGS" />
 
-    <queries>
-        <package android:name="de.diamaneos.auditor" />
-    </queries>
 
     <application
         android:name=".App"
@@ -50,7 +47,6 @@
         <activity android:name=".view.activity.SecurityActivity" />
         <activity android:name=".view.activity.MigrationActivity" />
         <activity android:name=".view.activity.GesturesActivity" />
-        <activity android:name="de.diamaneos.setup.AuditorActivity" android:exported="false" />
         <activity android:name=".view.activity.FinishActivity" />
     </application>
 

@@ -11,7 +11,6 @@ import com.google.android.setupcompat.util.WizardManagerHelper
 import com.google.android.setupdesign.R
 import com.google.android.setupdesign.util.ThemeHelper
 import app.grapheneos.setupwizard.appContext
-import de.diamaneos.setup.AuditorActivity
 import de.diamaneos.setup.DownloadServersActivity
 import app.grapheneos.setupwizard.view.activity.DateTimeActivity
 import app.grapheneos.setupwizard.view.activity.FinishActivity
@@ -39,7 +38,6 @@ object SetupWizard {
         UpdaterSecurityPreviewActivity::class.java,
         MigrationActivity::class.java,
         GesturesActivity::class.java,
-        AuditorActivity::class.java,
         FinishActivity::class.java
     )
     private val secondaryUserActivities = listOf<Class<out Activity>>(

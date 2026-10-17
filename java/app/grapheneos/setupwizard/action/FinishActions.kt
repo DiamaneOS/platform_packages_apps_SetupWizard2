@@ -10,7 +10,6 @@ import android.util.Log
 import app.grapheneos.setupwizard.appContext
 import app.grapheneos.setupwizard.data.FinishData
 import app.grapheneos.setupwizard.utils.DebugFlags
-import de.diamaneos.setup.AuditorActivity
 
 object FinishActions {
     private const val TAG = "FinishActions"
@@ -47,8 +46,6 @@ object FinishActions {
             appContext.packageName,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP
         )
-        // last, so nothing outside the wizard can open before setup is complete
-        AuditorActivity.launchIfChosen(appContext)
     }
 
     private fun refreshOemUnlockStatus() {

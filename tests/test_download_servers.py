@@ -14,33 +14,22 @@ JAVA = {
     'android/os/UserManager.java': 'package android.os; public class UserManager { public boolean primary=true; public boolean isSystemUser(){return primary;} }',
     'android/view/View.java': 'package android.view; public class View { private static int next=1; public static int generateViewId(){return next++;} }',
     'android/content/ActivityNotFoundException.java': 'package android.content; public class ActivityNotFoundException extends RuntimeException {}',
-    'android/content/ComponentName.java': 'package android.content; public class ComponentName { public final String pkg,cls; public ComponentName(String p,String c){pkg=p;cls=c;} public String getPackageName(){return pkg;} }',
+    'android/content/ComponentName.java': 'package android.content; public class ComponentName { public final String pkg,cls; public ComponentName(String p,String c){pkg=p;cls=c;} }',
     'android/content/Intent.java': '''package android.content; public class Intent {
-        public static final int FLAG_ACTIVITY_NEW_TASK=0x10000000;
-        public Class<?> target; public ComponentName component; public String action,pkg; public int flags; public final java.util.Map<String,Object> extras=new java.util.HashMap<>();
-        public Intent(String a){action=a;} public Intent(Context c,Class<?> cls){target=cls;}
+        public Class<?> target; public ComponentName component; public final java.util.Map<String,Object> extras=new java.util.HashMap<>();
+        public Intent(String action){} public Intent(Context c,Class<?> cls){target=cls;}
         public Intent setComponent(ComponentName c){component=c;return this;}
-        public Intent setPackage(String p){pkg=p;return this;}
-        public Intent addFlags(int f){flags|=f;return this;}
-        public ComponentName resolveActivity(android.content.pm.PackageManager pm){return pm.fixtureResolve(this);}
         public Intent putExtra(String k,boolean v){extras.put(k,v);return this;}
         public Intent putExtra(String k,String v){extras.put(k,v);return this;} }''',
-    'android/content/pm/PackageManager.java': '''package android.content.pm; public class PackageManager {
-        public android.content.ComponentName resolved; public android.content.Intent queried;
-        public android.content.ComponentName fixtureResolve(android.content.Intent i){queried=i;return resolved;} }''',
-    'android/util/Log.java': 'package android.util; public class Log { public static int d(String t,String m){return 0;} public static int e(String t,String m,Throwable e){return 0;} }',
     'android/content/Context.java': '''package android.content; public class Context {
-        public static final android.content.pm.PackageManager packages=new android.content.pm.PackageManager();
         public final android.os.UserManager users=new android.os.UserManager();
-        public Intent launched; public int launchCount;
-        public android.content.pm.PackageManager getPackageManager(){return packages;}
-        public void startActivity(Intent i){launched=i;launchCount++;}
         public <T> T getSystemService(Class<T> cls){
             if(cls==android.os.UserManager.class)return cls.cast(users);
             if(cls==android.app.StatusBarManager.class)return cls.cast(new android.app.StatusBarManager());
             throw new AssertionError("Unexpected service");} }''',
     'android/app/Activity.java': '''package android.app; public class Activity extends android.content.Context {
-        public boolean finished;
+        public android.content.Intent launched; public int launchCount; public boolean finished;
+        public void startActivity(android.content.Intent i){launched=i;launchCount++;}
         public void startActivity(android.content.Intent i,android.os.Bundle b){startActivity(i);}
         public void finish(){finished=true;} }''',
     'android/app/ActivityOptions.java': '''package android.app; public class ActivityOptions {
@@ -90,19 +79,15 @@ import com.google.android.setupdesign.GlifRecyclerLayout
 
 class FixtureButton {
     private var click: ((View)->Unit)?=null
-    var text=0
-    fun setText(context: android.content.Context,id: Int){text=id}
     fun setOnClickListener(value: (View)->Unit){click=value}
     fun performClick(){click!!(View())}
 }
 abstract class SetupWizardActivity(val layoutResID: Int?=null,val icon: Int?=null,val header: Int?=null,val description: Int?=null): android.app.Activity() {
     val layout=GlifRecyclerLayout()
     val primaryButton=FixtureButton()
-    val secondaryButton=FixtureButton()
     var resultIntent: Intent?=null
     var resultLaunches=0
     var missingSettings=false
-    open fun onCreate(savedInstanceState: Bundle?){bindViews();setupActions()}
     open fun onResume(){}
     abstract fun bindViews()
     abstract fun setupActions()
@@ -111,7 +96,7 @@ abstract class SetupWizardActivity(val layoutResID: Int?=null,val icon: Int?=nul
     fun startActivityForResult(intent: Intent){if(missingSettings)throw android.content.ActivityNotFoundException();resultIntent=intent;resultLaunches++}
     protected open fun onActivityResult(code: Int,data: Intent?){}
     fun cancelledReturn(){onActivityResult(0,null)}
-    fun create(){onCreate(null)}
+    fun create(){bindViews();setupActions()}
 }
 '''
 HARNESS = r'''package de.diamaneos.setup
@@ -129,14 +114,11 @@ fun main(args: Array<String>) {
         check(welcome.launched.target==LocationActivity::class.java)
         val location=LocationActivity();SetupWizard.next(location)
         check(location.launched.target==SecurityActivity::class.java)
-        for(step in listOf(DownloadServersActivity::class.java,AuditorActivity::class.java)) {
-            try { SetupWizard.next(android.app.Activity(),step);error("Unexpected secondary step") }
-            catch(e: IllegalArgumentException){}
-        }
+        try { SetupWizard.next(android.app.Activity(),DownloadServersActivity::class.java);error("Unexpected secondary step") }
+        catch(e: IllegalArgumentException){}
         check(DownloadPolicyClient.reads==0 && DownloadPolicyClient.writes==0)
         return
     }
-    if(args[0].startsWith("auditor")) { auditor(args[0]);return }
     val activity=DownloadServersActivity();activity.create()
     val adapter=activity.layout.adapter!!
     val row=adapter.group.children.single()
@@ -195,52 +177,6 @@ fun main(args: Array<String>) {
     }
     check(DownloadPolicyClient.writes==0)
 }
-
-fun auditor(name: String) {
-    val packages=appContext.packageManager
-    val target=android.content.ComponentName("de.diamaneos.auditor","app.attestation.auditor.AttestationActivity")
-    packages.resolved=target
-    val step=AuditorActivity();step.create()
-    check(packages.queried!!.action=="de.diamaneos.auditor.action.ADD_THIS_PHONE" && packages.queried!!.pkg=="de.diamaneos.auditor")
-    when(name) {
-        "auditor_sequence" -> {
-            val gestures=GesturesActivity();SetupWizard.next(gestures)
-            check(gestures.launched.target==AuditorActivity::class.java)
-            check(!step.finished && step.launchCount==0)
-            check(step.layoutResID==R.layout.activity_migration && step.icon==R.drawable.baseline_verified_user_glif)
-            check(step.header==R.string.auditor_title && step.description==R.string.auditor_description)
-            check(step.primaryButton.text==R.string.auditor_next && step.secondaryButton.text==R.string.auditor_skip)
-            step.secondaryButton.performClick();check(step.launched.target==FinishActivity::class.java)
-            step.primaryButton.performClick();check(step.launched.target==FinishActivity::class.java)
-            check(appContext.launchCount==0)
-        }
-        "auditor_missing" -> {
-            step.primaryButton.performClick()
-            for(resolved in listOf(null,android.content.ComponentName("android","com.android.internal.app.ResolverActivity"))) {
-                packages.resolved=resolved
-                val hidden=AuditorActivity();hidden.create()
-                check(hidden.finished && hidden.launched.target==FinishActivity::class.java)
-            }
-            packages.resolved=target;AuditorActivity.launchIfChosen(appContext)
-            check(appContext.launchCount==0)
-        }
-        "auditor_choice" -> {
-            AuditorActivity.launchIfChosen(appContext)
-            step.secondaryButton.performClick();AuditorActivity.launchIfChosen(appContext)
-            check(appContext.launchCount==0)
-            step.primaryButton.performClick();AuditorActivity.launchIfChosen(appContext)
-            val launched=appContext.launched
-            check(appContext.launchCount==1 && launched.component===target && launched.pkg=="de.diamaneos.auditor")
-            check(launched.action=="de.diamaneos.auditor.action.ADD_THIS_PHONE" && launched.flags==android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-            check(launched.extras.isEmpty())
-            AuditorActivity.launchIfChosen(appContext);check(appContext.launchCount==1)
-            step.primaryButton.performClick();packages.resolved=null;AuditorActivity.launchIfChosen(appContext)
-            packages.resolved=target;AuditorActivity.launchIfChosen(appContext)
-            check(appContext.launchCount==1)
-        }
-        else -> error("Unknown fixture")
-    }
-}
 '''
 
 
@@ -253,10 +189,10 @@ class DownloadServerTests(unittest.TestCase):
         cls.kotlin = Path(os.environ.get('DOWNLOAD_POLICY_KOTLIN_HOME', '/Applications/Android Studio.app/Contents/plugins/Kotlin/kotlinc'))
         if not (cls.jdk / 'bin/javac').is_file() or not (cls.kotlin / 'lib/kotlin-compiler.jar').is_file():
             raise RuntimeError('Host JDK and Kotlin compiler required; no Android build is used')
-        strings = [item for name in ('download_servers.xml', 'auditor.xml') for item in ET.parse(ROOT / 'res/values' / name).getroot()]
+        strings = ET.parse(ROOT / 'res/values/download_servers.xml').getroot()
         string_ids = {item.get('name'): index for index, item in enumerate(strings, 10)}
         fields = ','.join(f'{name}={index}' for name, index in string_ids.items())
-        resources = 'package app.grapheneos.setupwizard; public class R { public static class string { public static final int ' + fields + '; } public static class drawable { public static final int baseline_download_glif=1,baseline_verified_user_glif=2; } public static class layout { public static final int activity_location=1,activity_migration=2; } public static class id { public static final int glif_layout=1; } }'
+        resources = 'package app.grapheneos.setupwizard; public class R { public static class string { public static final int ' + fields + '; } public static class drawable { public static final int baseline_download_glif=1; } public static class layout { public static final int activity_location=1; } public static class id { public static final int glif_layout=1; } }'
         files = dict(JAVA)
         files['app/grapheneos/setupwizard/R.java'] = resources
         for name, content in files.items():
@@ -276,8 +212,7 @@ class DownloadServerTests(unittest.TestCase):
         sources = list(cls.output.glob('*.kt')) + [ROOT / p for p in (
             'java/app/grapheneos/setupwizard/Constants.kt',
             'java/app/grapheneos/setupwizard/action/SetupWizard.kt',
-            'java/de/diamaneos/setup/DownloadServersActivity.kt',
-            'java/de/diamaneos/setup/AuditorActivity.kt')]
+            'java/de/diamaneos/setup/DownloadServersActivity.kt')]
         result = subprocess.run([str(cls.jdk / 'bin/java'), '-cp', str(cls.kotlin / 'lib/*'),
                                  'org.jetbrains.kotlin.cli.jvm.K2JVMCompiler', '-kotlin-home', str(cls.kotlin),
                                  '-jvm-target', '17', '-classpath', str(cls.output), '-d', str(cls.output)]
@@ -299,16 +234,6 @@ class DownloadServerTests(unittest.TestCase):
     def test_unavailable_does_not_launch_or_reset_and_next_advances(self): self.scenario('unavailable')
     def test_missing_or_untrusted_settings_stays_on_wizard_page(self): self.scenario('launch_refusal')
     def test_secondary_sequence_excludes_entry(self): self.scenario('secondary')
-    def test_auditor_step_after_gestures_before_finish(self): self.scenario('auditor_sequence')
-    def test_auditor_step_hidden_without_auditor(self): self.scenario('auditor_missing')
-    def test_auditor_opens_once_and_only_when_chosen(self): self.scenario('auditor_choice')
-
-    def test_auditor_opens_only_after_setup_is_marked_complete(self):
-        text = (ROOT / 'java/app/grapheneos/setupwizard/action/FinishActions.kt').read_text()
-        launch = text.index('AuditorActivity.launchIfChosen(appContext)')
-        for step in ('DEVICE_PROVISIONED, 1', 'USER_SETUP_COMPLETE, 1', 'finishAndRemoveTask()', 'context.finish()'):
-            self.assertLess(text.index(step), launch)
-        self.assertEqual((ROOT / 'java/de/diamaneos/setup/AuditorActivity.kt').read_text().count('startActivity'), 1)
 
     def test_no_permission_change_and_nonexported_activity(self):
         old = subprocess.run(['git', 'show', BASE + ':AndroidManifest.xml'], cwd=ROOT, check=True, capture_output=True, text=True).stdout
@@ -316,11 +241,9 @@ class DownloadServerTests(unittest.TestCase):
         current = ET.parse(ROOT / 'AndroidManifest.xml').getroot()
         self.assertEqual([dict(p.attrib) for p in previous.findall('uses-permission')], [dict(p.attrib) for p in current.findall('uses-permission')])
         self.assertEqual(current.get('package'), 'app.grapheneos.setupwizard')
-        for name in ('de.diamaneos.setup.DownloadServersActivity', 'de.diamaneos.setup.AuditorActivity'):
-            activity = next(p for p in current.findall('application/activity') if p.get(NS + 'name') == name)
-            self.assertEqual(activity.get(NS + 'exported'), 'false')
-            self.assertFalse(list(activity))
-        self.assertEqual([p.get(NS + 'name') for p in current.findall('queries/*')], ['de.diamaneos.auditor'])
+        activity = next(p for p in current.findall('application/activity') if p.get(NS + 'name') == 'de.diamaneos.setup.DownloadServersActivity')
+        self.assertEqual(activity.get(NS + 'exported'), 'false')
+        self.assertFalse(list(activity))
         self.assertIn('"DiamaneOSDownloadPolicyClient"', (ROOT / 'Android.bp').read_text())
 
     def test_native_row_copy_and_no_network_or_policy_write_code(self):

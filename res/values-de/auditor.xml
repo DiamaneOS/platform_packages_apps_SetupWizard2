@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="auditor_title">Dieses Smartphone mit Auditor prüfen</string>
-    <string name="auditor_description">Nach der Einrichtung wird Auditor geöffnet, um zu prüfen, ob auf diesem Smartphone ein unverändertes DiamaneOS mit gesperrtem Bootloader läuft. Du kannst das auch später in Auditor tun.</string>
-</resources>
